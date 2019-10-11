@@ -1,0 +1,151 @@
+{% extends "saller/base.html" %}
+
+{% block title %}
+    商品列表
+{% endblock %}
+
+{% block css_js %}
+{% endblock %}
+{% block label%}
+    订单列表
+{% endblock %}
+
+{% block content %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>订单编号</th>
+                <th>订单商品</th>
+                <th>商品数量</th>
+                <th>订单总价</th>
+                <th>收件人</th>
+                <th>收货地址</th>
+                <th>操作</th>
+            </tr>
+
+        </thead>
+        <tbody>
+            {% for one in orderinfo %}
+            <tr>
+                <td id="number">{{ one.order_id.order_number}}</td>
+                <td>{{ one.goods.goods_name }}</td>
+                <td>{{ one.goods_count }}</td>
+                <td>{{ one.goods_total }}</td>
+                <td>{{ one.order_id.order_user.site_set.first.username }}</td>
+            {% for site in one.order_id.order_user.site_set.all %}
+                {% if site.status == 1 %}
+                <td>{{ site.adderss_detail }}</td>
+                {% endif %}
+                {% endfor %}
+            {% if one.status == 0 %}
+                <td>
+                    <button class="btn btn-primary" onclick="warn(this)">提醒支付</button>
+                    <a href="/Saller/saller_caozuo/?req_type=refuse&orderinfo_id={{ one.id }}"><button class="btn btn-primary" id="refuse">拒绝订单</button></a>
+                </td>
+             {% elif one.status  == 1 %}
+                <td>
+                    <a href="/Saller/saller_caozuo/?req_type=fahuo&orderinfo_id={{ one.id }}"><button class="btn btn-primary" id="fahuo">立即发货</button></a>
+                </td>
+                 {% elif one.status  == 2 %}
+                <td>
+                    <button class="btn btn-primary">查看物流</button>
+                </td>
+                 {% elif one.status  == 3 %}
+                <td>
+                    <button class="btn btn-primary">查看订单详情</button>
+                </td>
+
+            {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot></tfoot>
+
+    </table>
+{#    <ul class="pagination" style="float: right; margin-right:100px;">#}
+{#    在售商品页#}
+{#    {% if status == '1' %}#}
+{#    添加首页#}
+{#        <li class="paginate_button page-item previous">#}
+{#            <a href="/Saller/goods_list/1/1" class="page-link">首页</a>#}
+{#        </li>#}
+{#   添加上一页 #}
+{#    {% if page_obj.has_previous %}#}
+{#        <li class="paginate_button page-item previous">#}
+{#        <a href="/Saller/goods_list/1/{{ page_obj.previous_page_number }}" class="page-link">上一页</a>#}
+{#        </li>#}
+{#    {% endif %}#}
+{#    {% for page in page_range %}#}
+{#        <li class="paginate_button page-item previous">#}
+{#            <a href="/Saller/goods_list/1/{{ page }}" class="page-link">{{ page }}</a>#}
+{#        </li>#}
+{#    {% endfor %}#}
+{#    添加下一页#}
+{#    {% if page_obj.has_next %}#}
+{#        <li class="paginate_button page-item previous ">#}
+{#            <a href="/Saller/goods_list/1/{{ page_obj.next_page_number }}" class="page-link">下一页</a>#}
+{#        </li>#}
+{#    {% endif %}#}
+{#    添加尾页#}
+{#        <li class="paginate_button page-item previous ">#}
+{#            <a href="/Saller/goods_list/1/{{ paginator.num_pages }}" class="page-link">尾页</a>#}
+{#        </li>#}
+{#    {% else %}#}
+       {#    添加首页#}
+{#        <li class="paginate_button page-item previous">#}
+{#            <a href="/Saller/goods_list/0/1" class="page-link">首页</a>#}
+{#        </li>#}
+{#   添加上一页 #}
+{#    {% if page_obj.has_previous %}#}
+{#        <li class="paginate_button page-item previous">#}
+{#        <a href="/Saller/goods_list/0/{{ page_obj.previous_page_number }}" class="page-link">上一页</a>#}
+{#        </li>#}
+{#    {% endif %}#}
+{#    {% for page in page_range %}#}
+{#        <li class="paginate_button page-item previous">#}
+{#            <a href="/Saller/goods_list/0/{{ page }}" class="page-link">{{ page }}</a>#}
+{#        </li>#}
+{#    {% endfor %}#}
+{#    添加下一页#}
+{#    {% if page_obj.has_next %}#}
+{#        <li class="paginate_button page-item previous ">#}
+{#            <a href="/Saller/goods_list/0/{{ page_obj.next_page_number }}" class="page-link">下一页</a>#}
+{#        </li>#}
+{#    {% endif %}#}
+{#    添加尾页#}
+{#        <li class="paginate_button page-item previous ">#}
+{#            <a href="/Saller/goods_list/0/{{ paginator.num_pages }}" class="page-link">尾页</a>#}
+{#        </li>#}
+{#    {% endif %}#}
+{##}
+{#    </ul>#}
+{% endblock %}
+
+{% block script %}
+    <script>
+        function warn(obj) {
+            order_number = $(obj).parents('td').siblings('#number').html()
+{#            console.log(order_id)#}
+            url = '/Saller/sendemail/'
+            send_data = {
+                'order_number':order_number,
+                'csrfmiddlewaretoken':'{{ csrf_token }}'
+            }
+            $.ajax(
+                {
+                    url:url,
+                    type:'post',
+                    data:send_data,
+                    success:function (data) {
+                        console.log(data)
+                        alert('邮箱发送成功')
+                    },
+                    error:function (error) {
+                        console.log(error)
+                    }
+                }
+            )
+        }
+
+    </script>
+{% endblock %}

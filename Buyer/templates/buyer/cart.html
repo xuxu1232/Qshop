@@ -1,0 +1,145 @@
+{% extends 'buyer/base.html' %}
+
+{% block title %}
+    购物车
+{% endblock %}
+
+{% block content %}
+
+
+	<div class="total_count">全部商品<em>{{ count }}</em>件</div>
+	<ul class="cart_list_th clearfix">
+		<li class="col01">商品名称</li>
+		<li class="col02">商品单位</li>
+		<li class="col03">商品价格</li>
+		<li class="col04">数量</li>
+		<li class="col05">小计</li>
+		<li class="col06">操作</li>
+	</ul>
+    <form action="/Buyer/place_order_more/">
+    {% for one in cart %}
+	<ul class="cart_list_td clearfix">
+		<li class="col01"><input type="checkbox"  class="checkbox" name="goods_{{ one.goods.id }}_{{ one.id }}" value="{{ one.id }}"></li>
+		<li class="col02"><img src="/static/{{ one.goods.picture}}"></li>
+		<li class="col03">{{ one.goods.goods_name }}<br><em>{{ one.goods_price }}元/500g</em></li>
+		<li class="col04">500g</li>
+		<li class="col05">{{ one.goods_price }}元</li>
+		<li class="col06">
+			<div class="num_add">
+				<a href="javascript:;" class="add fl" onclick="addnum(this)">+</a>
+				<input type="text" class="num_show fl" name="count_{{ one.goods.id }}" value="{{ one.goods_number }}" >
+				<a href="javascript:;" class="minus fl" onclick="redecenum(this)">-</a>
+			</div>
+		</li>
+		<li class="col07">{{ one.goods_total }}元</li>
+		<li class="col08"><a href="javascript:;" onclick="remove(this)">删除</a></li>
+{#		<li class="col08"><input type="button" value="删除" onclick="remove(this)"></li>#}
+	</ul>
+    {% endfor %}
+
+	<ul class="settlements">
+		<li class="col01"><input type="checkbox" name="" id="boxall"></li>
+		<li class="col02">全选</li>
+		<li class="col03">合计(不含运费)：<span>¥</span><em id="total_price">0</em><br>共计<b id="total_number">0</b>件商品</li>
+		<li class="col04"><input type="submit" value="去结算"></li>
+	</ul>
+    </form>
+
+{% endblock %}
+
+{% block script %}
+    <script>
+    // 点击+号数量增加，小计改变
+    function addnum(obj) {
+       num = parseInt($(obj).siblings('.num_show').val())
+        price = parseFloat($(obj).parents('.col06').siblings('.col05').text())
+        num += 1
+        total_price = num*price
+        $(obj).siblings('.num_show').val(num)
+        $(obj).parents('.col06').siblings('.col07').text(total_price)
+        $("#total_price").text(total_price)
+    }
+// 点击-，数量减少，小计减少
+    function redecenum(obj) {
+       num = parseInt($(obj).siblings('.num_show').val())
+        price = parseFloat($(obj).parents('.col06').siblings('.col05').text())
+        num -= 1
+        if (num<=1){num=1}
+        total_price = num*price
+        $(obj).siblings('.num_show').val(num)
+        $(obj).parents('.col06').siblings('.col07').text(total_price)
+        $("#total_price").text(total_price)
+    }
+
+    //点击删除，删除数据
+    function remove(obj) {
+        cart_id = $(obj).parents('.col08').siblings('.col01').find('.checkbox').val()
+{#        console.log(cart_id)#}
+        url = '/Buyer/remove/?cart_id='+cart_id
+        console.log(url)
+        $.ajax(
+            {
+                url:url,
+                type:'get',
+                data:'',
+                success:function (data) {
+                    window.location.href='/Buyer/cart/'
+                },
+                error:function (error) {
+                    console.log(error)
+                }
+            }
+        )
+    }
+
+    $("#boxall").click(
+        function () {
+            if (this.checked){
+                $(".checkbox").prop('checked',true)
+            }
+            else{
+                $(".checkbox").prop('checked',false)
+            }
+        add()
+
+        }
+    )
+
+    $(".checkbox").each(
+        function () {
+           $(this).click(
+               function () {
+                   if(!this.checkbox){
+                       $("#boxall").prop('checked',false)
+
+                   }
+add()
+               }
+
+           )
+
+        }
+
+    )
+
+{#    完成方法：点击选框，自动计算价钱以及数量#}
+    function add() {
+        count = 0 // 初始值
+        total_price = 0 // 初始值
+        // 循环每一个选框，判断是否有checked属性，有则获取价钱，
+        $(".checkbox").each(
+            function () {
+                if (this.checked) {
+                    xj = parseFloat($(this).parents(".cart_list_td").find(".col07").text())
+{#                    console.log($(this))#}
+                    count += 1
+                    total_price += xj
+                }
+            }
+        )
+        $("#total_price").text(total_price)
+        $("#total_number").text(count)
+
+    }
+    </script>
+{% endblock %}
